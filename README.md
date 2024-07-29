@@ -1,1 +1,1 @@
-# Seller-and-Buyer-Trust-App
+# SellerAndBuyerTrustApp
