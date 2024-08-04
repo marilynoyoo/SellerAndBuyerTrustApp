@@ -1,4 +1,4 @@
-# Seller and Buyer Trust App
+# SellerandBuyerTrustApp
 # Introduction:
 In the world of online transactions, trust is paramount. Whether buying a new gadget or selling a vintage item, both parties want assurance that they’re engaging in a secure and reliable exchange. Introducing the Seller and Buyer Trust App, a groundbreaking platform designed to build and maintain trust in digital transactions, ensuring a safer and more transparent marketplace for everyone.
 
