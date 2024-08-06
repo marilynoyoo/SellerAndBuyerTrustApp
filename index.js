@@ -1,376 +1,149 @@
-let url = "http://localhost:8080/SellerAndBuyerTrustApp/";
-document.addEventListener("DOMContentLoaded", () => {
-    loadInitialData();
-    loadProducts();
-    setupAddToCartButtons();
-    setupBuyButtons();
-    setupAddToWishlistButtons();
-    setupRemoveFromCartButtons();
-    setupRemoveFromWishlistButtons();
-    setupSearchButton();
-    setupCancelOrderButtons();
-    setupCancelProductButtons();
-    setupRefundProductButtons();
-    setupReturnProductButtons();
-    setupShipProductButtons();
-    setupUpdateProductButtons();
-    setupUpdateQuantityButtons();
-    setupUpdatePriceButtons();
-    setupRatingButtons();
-    setupReviewsButtons();
-    setupSellerDetails();
-    setupBuyerDetails();
-    setupRealtimeCommunicationButton();
-    setupChatAndVideoCallFeatures();
-    setupProductDescription();
-    setupProductStatus();
-    setupPriceButton();
-    setupQuantity();
-    setupAvailableProducts();
-    setupPayVia();
-    setupPayment();
-    setupEscrowPayment();
-    setupPaymentStatus();
-    setupAdvancedPenaltyPayment();
-    setupCommission();
-    setupDeliveryAddress();
-    setupDeliveryTime();
-    setupPickupLocation();
-    setupShipping();
-    setupDeliveryStatus();
-    setupMessage();
-    setupReviews();
-})
+document.addEventListener('DOMContentLoaded', () => {
+    const productList = document.getElementById('product-list');
+    const productDetails = document.getElementById('product-details');
+    const productImage = document.getElementById('product-image');
+    const productDescription = document.getElementById('product-description');
+    const productPrice = document.getElementById('product-price');
+    const buyProductButton = document.getElementById('buy-product');
+    const closeDetailsButton = document.getElementById('close-details');
+    const message = document.getElementById('message');
+    const searchInput = document.getElementById('search');
+    const toggleThemeButton = document.getElementById('toggle-theme');
+    const submitBuyerDetailsButton = document.getElementById('submit-buyer-details');
+    const buyerDetailsForm = document.getElementById('buyer-details-form');
+    const addProductButton = document.getElementById('add-product');
+    const sellerAddProductForm = document.getElementById('seller-add-product-form');
 
-function loadInitialProducts() {
-    fetch(url + "/products")
+    let products = [];
+    let selectedProduct = null;
+
+    // Fetch products from the mock API
+    fetch('http://localhost:3000/products')
         .then(response => response.json())
         .then(data => {
-            products = data
+            products = data;
+            displayProducts(products);
         })
-}
+        .catch(error => console.error('Error fetching products:', error));
 
-function loadInitialUsers() {
-    fetch(url + "/users")
-        .then(response => response.json())
-        .then(data => {
-            users = data
-        })
-}
+    // Display products 
+    function displayProducts(products) {
+        productList.innerHTML = '';
+        products.forEach(product => {
+            const productDiv = document.createElement('div');
+            productDiv.className = 'product';
+            productDiv.innerHTML = `
+                <img src="${product.imageUrl}" alt="${product.name}" class="product-image">
+                <p>${product.name}</p>
+            `;
+            productDiv.addEventListener('click', () => showProductDetails(product));
+            productList.appendChild(productDiv);
+        });
+    }
 
-function loadInitialData() {
-    loadInitialProducts();
-    loadInitialUsers();
-}
+    // Show product details
+    function showProductDetails(product) {
+        selectedProduct = product;
+        productImage.src = product.imageUrl;
+        productImage.alt = product.name;
+        productDescription.textContent = `Description: ${product.description}`;
+        productPrice.textContent = `Price: $${product.price.toFixed(2)}`;
+        productDetails.classList.remove('hidden');
+    }
 
-function loadProductlist() {
-    fetch(url + "/products")
-        .then(response => response.json())
-        .then(data => {
-            products = data
-        })
-}
+    // Close product details
+    closeDetailsButton.addEventListener('click', () => {
+        productDetails.classList.add('hidden');
+    });
 
+    // Buy product
+    buyProductButton.addEventListener('click', () => {
+        buyerDetailsForm.classList.remove('hidden');
+    });
 
-function setupBuyButton() {
-    const buyButtons = document.querySelectorAll(".buy-button");
-    buyButtons.forEach(button => {
-        button.addEventListener("click", (event) => {
-            const productId = event.target.id
-            const product = products.find(product => product.id == productId)
-            const user = users.find(user => user.id == product.sellerId)
-            buyProduct(productId, user)
-        })
-    })
-}
+    // Submit buyer details
+    submitBuyerDetailsButton.addEventListener('click', () => {
+        const buyerName = document.getElementById('buyer-name').value;
+        const buyerContact = document.getElementById('buyer-contact').value;
 
-function setupBuyButton() {
-    buyproduct.addEventListener("click", (event) => {
-        
-    })
-}
+        if (buyerName && buyerContact) {
+            const buyerDetails = {
+                name: buyerName,
+                contact: buyerContact,
+                productId: selectedProduct.id
+            };
 
-function handleProductBuying(product, productsold) {
-    fetch(url + "/products/" + product.id, {
-        method: "PUT",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            id: product.id,
-            name: product.name,
-            description: product.description,
-            price: product.price,
-            quantity: product.quantity,
-            sellerId: product.sellerId,
-            sold: productsold + 1
-        })
-    }).then(response => response.json())
-        .then(data => {
-            products = data
-        })
-}
+            fetch('http://localhost:3000/buyers', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(buyerDetails)
+            })
+            .then(response => response.json())
+            .then(() => {
+                buyerDetailsForm.classList.add('hidden');
+                productDetails.classList.add('hidden');
+                message.textContent = 'The seller will be in touch soon!';
+                message.classList.remove('hidden');
+                setTimeout(() => {
+                    message.classList.add('hidden');
+                }, 1000);
+            })
+            .catch(error => console.error('Error saving buyer details:', error));
+        } else {
+            alert('Please fill out all fields.');
+        }
+    });
 
-function setupBuyButtons() {
-    const buyButtons = document.querySelectorAll(".buy-button");
-    buyButtons.forEach(button => {
-        button.addEventListener("click", (event) => {
-            const productId = event.target.id
-            const product = products.find(product => product.id == productId)
-            const user = users.find(user => user.id == product.sellerId)
-            buyProduct(productId, user)
-        })
-    })
-}
+    // Search products
+    searchInput.addEventListener('input', () => {
+        const searchTerm = searchInput.value.toLowerCase();
+        const filteredProducts = products.filter(product => product.name.toLowerCase().includes(searchTerm));
+        displayProducts(filteredProducts);
+    });
 
-function setupWishlistButtons() {
-    const wishlistButtons = document.querySelectorAll(".wishlist-button");
-    wishlistButtons.forEach(button => {
-        button.addEventListener("click", (event) => {
-            const productId = event.target.id
-            const product = products.find(product => product.id == productId)
-            const user = users.find(user => user.id == product.sellerId)
-            addToWishlist(productId, user)
-        })
-    })
-}
+    // Toggle dark/light mode
+    toggleThemeButton.addEventListener('click', () => {
+        document.body.classList.toggle('dark-mode');
+    });
 
-function setupAddToCartButtons() {
-    const addToCartButtons = document.querySelectorAll(".add-to-cart-button");
-    addToCartButtons.forEach(button => {
-        button.addEventListener("click", (event) => {
-            const productId = event.target.id
-            const product = products.find(product => product.id == productId)
-            const user = users.find(user => user.id == product.sellerId)
-            addToCart(productId, user)
-        })
-    })
-}
+    // Add new product
+    addProductButton.addEventListener('click', () => {
+        const productName = document.getElementById('product-name').value;
+        const productDescription = document.getElementById('product-description').value;
+        const productPrice = document.getElementById('product-price').value;
+        const productImageUrl = document.getElementById('product-image-url').value;
 
-function setupAddToWishlistButtons() {
-    const addToWishlistButtons = document.querySelectorAll(".add-to-wishlist-button");
-    addToWishlistButtons.forEach(button => {
-        button.addEventListener("click", (event) => {
-            const productId = event.target.id
-            const product = products.find(product => product.id == productId)
-            const user = users.find(user => user.id == product.sellerId)
-            addToWishlist(productId, user)
-        })
-    })
-}
+        if (productName && productDescription && productPrice && productImageUrl) {
+            const newProduct = {
+                name: productName,
+                description: productDescription,
+                price: parseFloat(productPrice),
+                imageUrl: productImageUrl
+            };
 
-function setupRemoveFromCartButtons() {
-    const removeFromCartButtons = document.querySelectorAll(".remove-from-cart-button");
-    removeFromCartButtons.forEach(button => {
-        button.addEventListener("click", (event) => {
-            const productId = event.target.id
-            const product = products.find(product => product.id == productId)
-            const user = users.find(user => user.id == product.sellerId)
-            removeFromCart(productId, user)
-        })
-    })
-}
-
-function setupRemoveFromWishlistButtons() {
-    const removeFromWishlistButtons = document.querySelectorAll(".remove-from-wishlist-button");
-    removeFromWishlistButtons.forEach(button => {
-        button.addEventListener("click", (event) => {
-            const productId = event.target.id
-            const product = products.find(product => product.id == productId)
-            const user = users.find(user => user.id == product.sellerId)
-            removeFromWishlist(productId, user)
-        })
-    })
-}
-
-function setupSearchButton() {
-    const searchButton = document.getElementById("search-button");
-    searchButton.addEventListener("click", (event) => {
-        const query = document.getElementById("search-input").value
-        search(query)
-    })
-}
-
-function setupRealtimeCommunicationButton() {
-    const realtimeCommunicationButton = document.getElementById("realtime-communication-button");
-    realtimeCommunicationButton.addEventListener("click", (event) => {
-        realtimeCommunication()
-    })
-}
-
-function setupChatAndVideoCallFeatures() {
-    const chatAndVideoCallFeatures = document.getElementById("chat-and-video-call-features");
-    chatAndVideoCallFeatures.addEventListener("click", (event) => {
-        chatAndVideoCall()
-    })
-}
-
-function setupProductDescription() {
-    const productDescription = document.getElementById("product-description");
-    productDescription.addEventListener("click", (event) => {
-        productDescription()
-    })
-}
-
-function setupProductStatus() {
-    const productStatus = document.getElementById("product-status");
-    productStatus.addEventListener("click", (event) => {
-        productStatus()
-    })
-}
-
-function setupPrice() {
-    const price = document.getElementById("price");
-    price.addEventListener("click", (event) => {
-        price()
-    })
-}
-
-function setupRating() {
-    const rating = document.getElementById("rating");
-    rating.addEventListener("click", (event) => {
-        rating()
-    })
-}
-
-function setupQuantity() {
-    const quantity = document.getElementById("quantity");
-    quantity.addEventListener("click", (event) => {
-        quantity()
-    })
-}
-
-function setupPayVia() {
-    const payVia = document.getElementById("pay-via");
-    payVia.addEventListener("click", (event) => {
-        payVia()
-    })
-}
-
-function setupPayment() {
-    const payment = document.getElementById("payment");
-    payment.addEventListener("click", (event) => {
-        payment()
-    })
-}
-
-function setupEscrowPayment() {
-    const escrowPayment = document.getElementById("escrow-payment");
-    escrowPayment.addEventListener("click", (event) => {
-        escrowPayment()
-    })
-}
-
-function setupPaymentStatus() {
-    const paymentStatus = document.getElementById("payment-status");
-    paymentStatus.addEventListener("click", (event) => {
-        paymentStatus()
-    })
-}
-
-function setupBreachOfContractPenalty() {
-    const breachOfContractPenalty = document.getElementById("breach-of-contract-penalty");
-    breachOfContractPenalty.addEventListener("click", (event) => {
-        breachOfContractPenalty()
-    })
-}
-
-function setupAdvancedPenaltyPayment() {
-    const advancedPenaltyPayment = document.getElementById("advanced-penalty-payment");
-    advancedPenaltyPayment.addEventListener("click", (event) => {
-        advancedPenaltyPayment()
-    })
-}
-
-function setupCommission() {
-    const commission = document.getElementById("commission");
-    commission.addEventListener("click", (event) => {
-        commission()
-    })
-}
-
-function setupDeliveryAddress() {
-    const deliveryAddress = document.getElementById("delivery-address");
-    deliveryAddress.addEventListener("click", (event) => {
-        deliveryAddress()
-    })
-}
-
-function setupDeliveryTime() {
-    const deliveryTime = document.getElementById("delivery-time");
-    deliveryTime.addEventListener("click", (event) => {
-        deliveryTime()
-    })
-}
-
-function setupPickupLocation() {
-    const pickupLocation = document.getElementById("pickup-location");
-    pickupLocation.addEventListener("click", (event) => {
-        pickupLocation()
-    })
-}
-
-function setupShipping() {
-    const shipping = document.getElementById("shipping");
-    shipping.addEventListener("click", (event) => {
-        shipping()
-    })
-}
-
-function setupDeliveryStatus() {
-    const deliveryStatus = document.getElementById("delivery-status");
-    deliveryStatus.addEventListener("click", (event) => {
-        deliveryStatus()
-    })
-}
-
-function setupEscrowPaymentStatus() {
-    const escrowPaymentStatus = document.getElementById("escrow-payment-status");
-    escrowPaymentStatus.addEventListener("click", (event) => {
-        escrowPaymentStatus()
-    })
-}
-
-function setupTrustScore() {
-    const trustScore = document.getElementById("trust-score");
-    trustScore.addEventListener("click", (event) => {
-        trustScore()
-    })
-}
-
-function setupSellerDetails() {
-    const seller = document.getElementById("seller");
-    seller.addEventListener("click", (event) => {
-        seller()
-    })
-}
-
-function setupBuyerDetails() {
-    const buyer = document.getElementById("buyer");
-    buyer.addEventListener("click", (event) => {
-        buyer()
-    })
-}
-
-function setupAvailableProducts() {
-    const availableProducts = document.getElementById("available-products");
-    availableProducts.addEventListener("click", (event) => {
-        availableProducts()
-    })
-}
-
-function setupRealtimeCommunication() {
-    const realtimeCommunication = document.getElementById("realtime-communication");
-    realtimeCommunication.addEventListener("click", (event) => {
-        realtimeCommunication()
-    })
-}
-
-function setupMessage() {
-    const message = document.getElementById("message");
-    message.addEventListener("click", (event) => {
-        message()
-    })
-}
-
-
+            fetch('http://localhost:3000/products', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(newProduct)
+            })
+            .then(response => response.json())
+            .then(product => {
+                products.push(product);
+                displayProducts(products);
+                sellerAddProductForm.reset();
+                message.textContent = 'Product added successfully!';
+                message.classList.remove('hidden');
+                setTimeout(() => {
+                    message.classList.add('hidden');
+                }, 1000);
+            })
+            .catch(error => console.error('Error adding product:', error));
+        } else {
+            alert('Please fill out all fields.');
+        }
+    });
+});
